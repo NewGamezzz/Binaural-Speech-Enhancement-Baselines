@@ -3,8 +3,7 @@ import torch.nn as nn
 
 
 class Stft(nn.Module):
-    def __init__(self, n_dft=1024, hop_size=512, win_length=None,
-                 onesided=True, is_complex=True):
+    def __init__(self, n_dft=1024, hop_size=512, win_length=None, onesided=True, is_complex=True):
 
         super().__init__()
 
@@ -19,29 +18,43 @@ class Stft(nn.Module):
 
         window = torch.hann_window(self.win_length, device=x.device)
 
-        y = torch.stft(x, self.n_dft, hop_length=self.hop_size,
-                       win_length=self.win_length, onesided=self.onesided,
-                       return_complex=True, window=window, normalized=True)
-        
-        y = y[:, 1:] # Remove DC component (f=0hz)
+        y = torch.stft(
+            x,
+            self.n_dft,
+            hop_length=self.hop_size,
+            win_length=self.win_length,
+            onesided=self.onesided,
+            return_complex=True,
+            window=window,
+            normalized=True,
+        )
+
+        y = y[:, 1:]  # Remove DC component (f=0hz)
 
         # y.shape == (batch_size*channels, time, freqs)
 
         if not self.is_complex:
             y = torch.view_as_real(y)
-            y = y.movedim(-1, 1) # move complex dim to front
+            y = y.movedim(-1, 1)  # move complex dim to front
 
         return y
 
 
 class IStft(Stft):
 
-    def forward(self, x: torch.Tensor):
+    def forward(self, x: torch.Tensor, length=None):
         "Expected input has shape (batch_size, n_channels=freq_bins, time_steps)"
         window = torch.hann_window(self.win_length, device=x.device)
 
-        y = torch.istft(x, self.n_dft, hop_length=self.hop_size,
-                        win_length=self.win_length, onesided=self.onesided,
-                        window=window,normalized=True)
+        y = torch.istft(
+            x,
+            self.n_dft,
+            hop_length=self.hop_size,
+            win_length=self.win_length,
+            onesided=self.onesided,
+            window=window,
+            normalized=True,
+            length=length,
+        )
 
         return y

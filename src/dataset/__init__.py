@@ -1,3 +1,3 @@
-from .dataset import ToyDataset
+from .dataset import ToyDataset, DataModule
 
-__all__ = ["ToyDataset"]
+__all__ = ["ToyDataset", "DataModule"]

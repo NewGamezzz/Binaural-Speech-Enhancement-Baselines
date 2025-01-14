@@ -1,0 +1,7 @@
+name: "toydataset"
+train_path: "../train"
+val_path: "../test"
+test_path: "../test"
+mode: "both"
+batch_size: 32
+num_workers: 4

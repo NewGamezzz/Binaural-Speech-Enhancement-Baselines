@@ -129,7 +129,7 @@ class DCNN(nn.Module):
 
 class BinauralAttentionDCNN(DCNN):
     def forward(self, inputs):
-        # batch_size, binaural_channels, time_bins = inputs.shape
+        batch_size, binaural_channels, time_bins = inputs.shape
         cspecs_l = self.stft(inputs[:, 0])
         cspecs_r = self.stft(inputs[:, 1])
         cspecs = torch.stack((cspecs_l, cspecs_r), dim=1)
@@ -187,12 +187,12 @@ class BinauralAttentionDCNN(DCNN):
         out_spec_r = apply_mask(x_r[:, 0], cspecs_r, self.masking_mode)
 
         # 5. Invert STFT
-        out_wav_l = self.istft(out_spec_l)
+        out_wav_l = self.istft(out_spec_l, length=time_bins)
         # breakpoint()
         # out_wav_l = torch.squeeze(out_wav_l, 1)
         # out_wav_l = torch.clamp_(out_wav_l, -1, 1)
 
-        out_wav_r = self.istft(out_spec_r)
+        out_wav_r = self.istft(out_spec_r, length=time_bins)
         # out_wav_r = torch.squeeze(out_wav_r, 1)
         # out_wav_r = torch.clamp_(out_wav_r, -1, 1)
 

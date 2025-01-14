@@ -1,0 +1,6 @@
+name: BCCTN
+use_clstm: true
+use_cbn: true
+loss:
+  name: "binaural_loss"
+device: "cpu"

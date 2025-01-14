@@ -5,7 +5,9 @@ import wandb
 import torch
 import numpy as np
 from tqdm import tqdm
-from .utils.other import get_lr
+from pesq import pesq
+from pystoi import stoi
+from .utils.other import get_lr, si_sdr
 
 
 class Callback:
@@ -112,100 +114,61 @@ class WanDBLogger(Callback):
     #     wandb.finish(exit_code=0)
 
 
-class LogSpoofMetrics(Callback):
-    def __init__(self, output_path, enhance=None, mask=False):
+class ValidationInference(Callback):
+    def __init__(
+        self,
+        save_path,
+    ):
         self.output = []
-        self.label = []
-        self.mask = mask
-        self.enhance = enhance
-        self.output_path = os.path.join(output_path, "weights")
-        self.best_eer = None
+        self.target = []
+        self.save_path = save_path
+        self.best_pesq = None
         self.best_epoch = None
-
-    def on_train_epoch_start(self, trainer, epoch):
-        self.output = []
-        self.label = []
-
-    def on_train_batch_end(self, trainer, batch, batch_idx, output, loss):
-        # TODO: append minibatch output to self.output, do the same thing to batch_label
-        minibatch_label = batch[1]
-
-        self.output.append(output.detach())
-        self.label.append(minibatch_label.detach())
-
-    def on_train_epoch_end(self, trainer, epoch, logs=None):
-        # TODO: Calculate other metrics, including accuracy, eer, min_dcf, and print or wandb
-        self.output = torch.cat(self.output, 0)
-        self.label = torch.cat(self.label, 0).data.cpu().numpy()
-        prob = torch.nn.functional.softmax(self.output, dim=1)[:, 1].cpu().numpy()
-
-        # Calculate accuracy
-        _, pred = self.output.max(dim=1)
-        num_correct = (pred.cpu().numpy() == self.label).sum(axis=0).item()
-        num_total = self.output.size(0)
-        accuracy = (num_correct / num_total) * 100
-
-        # Calculate eer, mindcf
-        eer = compute_eer(prob[self.label == 1], prob[self.label == 0])[0] * 100
-
-        cm_keys = np.where(self.label == 1, "bonafide", "spoof")
-        minDCF, _, _, _ = calculate_minDCF_EER_CLLR_actDCF(
-            cm_scores=prob, cm_keys=cm_keys, output_file="./tmp.txt"
-        )
-
-        wandb.log(
-            {
-                "epoch": epoch,
-                "train_accuracy": accuracy,
-                "train_eer": eer,
-                "train_minDCF": minDCF,
-            }
-        )
 
     def on_validation_epoch_start(self, trainer, epoch):
         # TODO: clear list of output and label
         self.output = []
-        self.label = []
+        self.target = []
 
     def on_validation_batch_end(self, trainer, batch, batch_idx, output, loss):
         # TODO: append minibatch output to self.output, do the same thing to batch_label
-        minibatch_label = batch[1]
+        clean_mono_utterance = batch[-1]
 
         self.output.append(output.detach())
-        self.label.append(minibatch_label.detach())
+        self.target.append(clean_mono_utterance.detach())
 
     def on_validation_epoch_end(self, trainer, epoch, logs=None):
         # TODO: Calculate other metrics, including accuracy, eer, min_dcf, and print or wandb
-        self.output = torch.cat(self.output, 0)
-        self.label = torch.cat(self.label, 0).data.cpu().numpy()
-        prob = torch.nn.functional.softmax(self.output, dim=1)[:, 1].cpu().numpy()
+        self.output = torch.cat(self.output, 0).data.cpu().numpy()
+        self.target = torch.cat(self.label, 0).squeeze(1).data.cpu().numpy()
 
-        # Calculate accuracy
-        _, pred = self.output.max(dim=1)
-        num_correct = (pred.cpu().numpy() == self.label).sum(axis=0).item()
-        num_total = self.output.size(0)
-        accuracy = (num_correct / num_total) * 100
+        self.output = np.mean(self.output, axis=1)
 
-        # Calculate eer, mindcf
-        eer = compute_eer(prob[self.label == 1], prob[self.label == 0])[0] * 100
+        n_utterance, _ = self.output.shape
 
-        cm_keys = np.where(self.label == 1, "bonafide", "spoof")
-        minDCF, _, _, _ = calculate_minDCF_EER_CLLR_actDCF(
-            cm_scores=prob, cm_keys=cm_keys, output_file="./tmp.txt"
-        )
-        if self.best_eer is None or self.best_eer > eer:
-            self.best_eer = eer
+        _pesq, _si_sdr, _estoi = 0.0, 0.0, 0.0
+        for index in range(n_utterance):
+            _si_sdr += si_sdr(self.target[index], self.output[index])
+            _pesq += pesq(16000, self.target[index], self.output[index], "wb")
+            _estoi += stoi(self.target[index], self.output[index], 16000, extended=True)
+
+        _si_sdr /= n_utterance
+        _pesq /= n_utterance
+        _estoi /= n_utterance
+
+        if self.pesq is None or _pesq > self.pesq:
             self.best_epoch = epoch
+            self.best_pesq = _pesq
 
         wandb.log(
             {
                 "epoch": epoch,
-                "valid_accuracy": accuracy,
-                "valid_eer": eer,
-                "valid_minDCF": minDCF,
+                "valid_si_sdr": _si_sdr,
+                "valid_pesq": _pesq,
+                "vaild_estoi": _estoi,
             }
         )
 
     def on_end(self, trainer):
         # TODO Load Best model and Inference on the test-set.
-        pass
+        wandb.log({"best_epoch": self.best_epoch, "best_pesq": self.best_pesq})
