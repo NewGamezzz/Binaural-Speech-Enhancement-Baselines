@@ -11,7 +11,7 @@ def train(config: DictConfig) -> None:
     model_config = OmegaConf.to_container(config.model)
     model = factory.create_model(model_config)
 
-    # all_config = OmegaConf.to_container(config)
+    all_config = OmegaConf.to_container(config)
     # trainer = factory.create_trainer(model, data_module, all_config)
     # trainer.fit(config.trainer.epochs)
 

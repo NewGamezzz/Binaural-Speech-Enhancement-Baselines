@@ -1,0 +1,15 @@
+dataset:
+  name: toydataset
+  train_path: ../train
+  val_path: ../test
+  test_path: ../test
+  mode: both
+  batch_size: 32
+  num_workers: 4
+model:
+  name: BCCTN
+  use_clstm: true
+  use_cbn: true
+  loss:
+    name: binaural_loss
+  device: cpu

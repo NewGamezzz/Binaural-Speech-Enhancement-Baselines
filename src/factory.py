@@ -9,6 +9,7 @@ from .dataset import DataModule, ToyDataset
 from .losses import BinauralLoss
 from .module import BinauralSpeechEnhancement
 from .callbacks import TQDMProgressBar, WanDBLogger, ValidationInference
+from .trainer import Trainer
 
 
 def create_data_module(config):
@@ -97,7 +98,7 @@ def create_wandb_callback(config, general_config, *args, **kwargs):
     return WanDBLogger(wandb_config)
 
 
-def create_validation_inference_callback(config, diffusion, data_module, *args, **kwargs):
+def create_validation_inference_callback(config, *args, **kwargs):
     output_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     folder_name = config["save_path"].replace("./", "")
     config["save_path"] = os.path.join(output_path, folder_name)
@@ -105,20 +106,20 @@ def create_validation_inference_callback(config, diffusion, data_module, *args, 
     return ValidationInference(**config)
 
 
-def create_trainer(diffusion, data_module, config):
+def create_trainer(model, data_module, config):
     general_config = copy.deepcopy(config)
     trainer_config = config["trainer"]
 
     optimizer_config = trainer_config.pop("optimizer")
-    optimizer = torch.optim.Adam(diffusion.parameters(), **optimizer_config)
+    optimizer = torch.optim.Adam(model.parameters(), **optimizer_config)
 
-    kwargs = {"diffusion": diffusion, "data_module": data_module, "general_config": general_config}
+    kwargs = {"general_config": general_config}
     callbacks = []
     callbacks_config = trainer_config.get("callbacks", [])
     for callback_config in callbacks_config:
         callback = create_callback(callback_config, **kwargs)
         callbacks.append(callback)
 
-    trainer = Trainer(diffusion, data_module, optimizer, callbacks=callbacks, scheduler=scheduler)
+    trainer = Trainer(model, data_module, optimizer, callbacks=callbacks)
 
     return trainer
