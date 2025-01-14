@@ -1,6 +1,0 @@
-dataset:
-  name: toydataset
-  train_path: ../train
-  val_path: ../test
-  test_path: ../test
-  mode: binaural
