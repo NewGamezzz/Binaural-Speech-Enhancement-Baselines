@@ -8,22 +8,29 @@ from .utils.show import show_params, show_model
 from .utils.apply_mask import apply_mask
 
 
-
 class DCNN(nn.Module):
     def __init__(
-            self,
-            rnn_layers=2, rnn_units=128,
-            win_len=400, win_inc=100, fft_len=512, win_type='hann',
-            masking_mode='E', use_clstm=False,
-            kernel_size=5, 
-            kernel_num=[16, 32, 64, 128, 256,256], 
-            # kernel_num = [ 8, 16, 32, 64, 128, 128],
-            bidirectional=False, embed_dim=1024, num_heads=32, **kwargs
+        self,
+        rnn_layers=2,
+        rnn_units=128,
+        win_len=400,
+        win_inc=100,
+        fft_len=512,
+        win_type="hann",
+        masking_mode="E",
+        use_clstm=False,
+        kernel_size=5,
+        kernel_num=[16, 32, 64, 128, 256, 256],
+        # kernel_num = [ 8, 16, 32, 64, 128, 128],
+        bidirectional=False,
+        embed_dim=1024,
+        num_heads=32,
+        **kwargs
     ):
-        ''' 
-            rnn_layers: the number of lstm layers in the crn,
-            rnn_units: for clstm, rnn_units = real+imag
-        '''
+        """
+        rnn_layers: the number of lstm layers in the crn,
+        rnn_units: for clstm, rnn_units = real+imag
+        """
 
         super().__init__()
 
@@ -43,22 +50,22 @@ class DCNN(nn.Module):
 
         self.stft = Stft(self.fft_len, self.win_inc, self.win_len)
         self.istft = IStft(self.fft_len, self.win_inc, self.win_len)
-        
 
         self.num_heads = num_heads
         self.embed_dim = embed_dim
         hidden_dim = self.fft_len // (2 ** (len(self.kernel_num) + 1))
-        self.mattn = MultiAttnBlock(input_size=1024,
-                                    hidden_size=self.rnn_units,
-                                    embed_dim=self.embed_dim,
-                                    num_heads=self.num_heads,
-                                    batch_first=True)
+        self.mattn = MultiAttnBlock(
+            input_size=1024,
+            hidden_size=self.rnn_units,
+            embed_dim=self.embed_dim,
+            num_heads=self.num_heads,
+            batch_first=True,
+        )
 
         self.encoder = Encoder(self.kernel_num, kernel_size)
         # self._create_rnn(rnn_layers)
         # self.attn = FAL(in_channels=1, out_channels=96, f_length=256)
 
-        
         # self.rnn = RnnBlock(
         #     # if idx == 0 else self.rnn_units,
         #     input_size=hidden_dim * self.kernel_num[-1],
@@ -68,8 +75,8 @@ class DCNN(nn.Module):
 
         self.decoder = Decoder(self.kernel_num, self.kernel_size)
 
-        show_model(self)
-        show_params(self)
+        # show_model(self)
+        # show_params(self)
         # self._flatten_parameters()
 
     def forward(self, inputs):
@@ -103,18 +110,22 @@ class DCNN(nn.Module):
         # add L2 penalty
         weights, biases = [], []
         for name, param in self.named_parameters():
-            if 'bias' in name:
+            if "bias" in name:
                 biases += [param]
             else:
                 weights += [param]
-        params = [{
-            'params': weights,
-            'weight_decay': weight_decay,
-        }, {
-            'params': biases,
-            'weight_decay': 0.0,
-        }]
+        params = [
+            {
+                "params": weights,
+                "weight_decay": weight_decay,
+            },
+            {
+                "params": biases,
+                "weight_decay": 0.0,
+            },
+        ]
         return params
+
 
 class BinauralAttentionDCNN(DCNN):
     def forward(self, inputs):
@@ -145,8 +156,8 @@ class BinauralAttentionDCNN(DCNN):
         # x_l_rnn = self.rnn(encoder_out_l[-1])
         # x_r_rnn = self.rnn(encoder_out_r[-1])
         # breakpoint()
-        attention_in = torch.cat((encoder_out_l[-1],encoder_out_r[-1]), dim=1)
-        
+        attention_in = torch.cat((encoder_out_l[-1], encoder_out_r[-1]), dim=1)
+
         #
         # breakpoint()
         # x_l_mattn = self.mattn(encoder_out_l[-1])
@@ -161,8 +172,8 @@ class BinauralAttentionDCNN(DCNN):
         # _, dec_attn_len, _, _ = attention_dec.shape
         # decoder_attn_l = attention_dec[:, :dec_attn_len//2, :, :]
         # decoder_attn_r = attention_dec[:, dec_attn_len//2:, :, :]
-        x_l_mattn = x_attn[:,:128,:,:]
-        x_r_mattn = x_attn[:,128:,:,:]
+        x_l_mattn = x_attn[:, :128, :, :]
+        x_r_mattn = x_attn[:, 128:, :, :]
         # x_l_mattn = x_attn[:,:64,:,:]
         # x_r_mattn = x_attn[:,64:,:,:]
         # 3. Apply decoder
@@ -180,15 +191,15 @@ class BinauralAttentionDCNN(DCNN):
         # breakpoint()
         # out_wav_l = torch.squeeze(out_wav_l, 1)
         # out_wav_l = torch.clamp_(out_wav_l, -1, 1)
-        
+
         out_wav_r = self.istft(out_spec_r)
         # out_wav_r = torch.squeeze(out_wav_r, 1)
         # out_wav_r = torch.clamp_(out_wav_r, -1, 1)
 
         # breakpoint()
-        
+
         out_wav = torch.stack([out_wav_l, out_wav_r], dim=1)
-       
+
         return out_wav
 
 
@@ -204,17 +215,15 @@ class Encoder(nn.Module):
             self.model.append(
                 nn.Sequential(
                     # nn.ConstantPad2d([0, 0, 0, 0], 0),
-
                     torch_complex.ComplexConv2d(
-                        self.kernel_num[idx]//2,
-                        self.kernel_num[idx + 1]//2,
+                        self.kernel_num[idx] // 2,
+                        self.kernel_num[idx + 1] // 2,
                         kernel_size=(self.kernel_size, 2),
                         stride=(2, 1),
-                        padding=(2, 1)
+                        padding=(2, 1),
                     ),
-                    torch_complex.NaiveComplexBatchNorm2d(
-                        self.kernel_num[idx + 1]//2),
-                    torch_complex.ComplexPReLU()
+                    torch_complex.NaiveComplexBatchNorm2d(self.kernel_num[idx + 1] // 2),
+                    torch_complex.ComplexPReLU(),
                 )
             )
 
@@ -241,26 +250,25 @@ class Decoder(nn.Module):
             block = [
                 torch_complex.ComplexConvTranspose2d(
                     self.kernel_num[idx],  # * 2,
-                    self.kernel_num[idx - 1]//2,
+                    self.kernel_num[idx - 1] // 2,
                     kernel_size=(self.kernel_size, 2),
                     stride=(2, 1),
                     padding=(2, 1),
-                    output_padding=(1, 0)
+                    output_padding=(1, 0),
                 ),
             ]
 
             if idx != 1:
-                block.append(torch_complex.NaiveComplexBatchNorm2d(
-                    self.kernel_num[idx - 1]//2))
+                block.append(torch_complex.NaiveComplexBatchNorm2d(self.kernel_num[idx - 1] // 2))
                 block.append(torch_complex.ComplexPReLU())
             self.model.append(nn.Sequential(*block))
 
     def forward(self, x, encoder_out):
         for idx in range(len(self.model)):
-            #x = complex_cat([x, encoder_out[-1 - idx]], 1)
+            # x = complex_cat([x, encoder_out[-1 - idx]], 1)
             x = torch.cat([x, encoder_out[-1 - idx]], 1)
             x = self.model[idx](x)
-            #x = x[..., 1:]
+            # x = x[..., 1:]
 
         return x
 
@@ -298,17 +306,15 @@ class Decoder(nn.Module):
 
 
 class MultiAttnBlock(nn.Module):
-    def __init__(self, input_size, hidden_size, embed_dim=128, num_heads=8, 
-                batch_first=True):
+    def __init__(self, input_size, hidden_size, embed_dim=128, num_heads=8, batch_first=True):
         super().__init__()
 
         self.mattn = torch_complex.ComplexMultiheadAttention(
-            embed_dim=embed_dim, num_heads=num_heads, batch_first=batch_first)
+            embed_dim=embed_dim, num_heads=num_heads, batch_first=batch_first
+        )
 
         self.transform = nn.Linear(
-            in_features=input_size,
-            out_features=input_size,
-            dtype=torch.complex64
+            in_features=input_size, out_features=input_size, dtype=torch.complex64
         )
 
     def forward(self, x):
