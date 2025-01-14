@@ -140,14 +140,14 @@ class ValidationInference(Callback):
     def on_validation_epoch_end(self, trainer, epoch, logs=None):
         # TODO: Calculate other metrics, including accuracy, eer, min_dcf, and print or wandb
         self.output = torch.cat(self.output, 0).data.cpu().numpy()
-        self.target = torch.cat(self.label, 0).squeeze(1).data.cpu().numpy()
+        self.target = torch.cat(self.target, 0).squeeze(1).data.cpu().numpy()
 
         self.output = np.mean(self.output, axis=1)
 
         n_utterance, _ = self.output.shape
 
         _pesq, _si_sdr, _estoi = 0.0, 0.0, 0.0
-        for index in range(n_utterance):
+        for index in tqdm(range(n_utterance), desc="Calculate Metrics"):
             _si_sdr += si_sdr(self.target[index], self.output[index])
             _pesq += pesq(16000, self.target[index], self.output[index], "wb")
             _estoi += stoi(self.target[index], self.output[index], 16000, extended=True)
@@ -156,7 +156,7 @@ class ValidationInference(Callback):
         _pesq /= n_utterance
         _estoi /= n_utterance
 
-        if self.pesq is None or _pesq > self.pesq:
+        if self.best_pesq is None or _pesq > self.best_pesq:
             self.best_epoch = epoch
             self.best_pesq = _pesq
 

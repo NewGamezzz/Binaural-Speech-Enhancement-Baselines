@@ -1,2 +1,5 @@
 config/trainer/trainer.yaml
 outputs/
+backups/
+wandb/
+*.sh

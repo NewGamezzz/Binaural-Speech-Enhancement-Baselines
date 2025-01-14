@@ -80,7 +80,8 @@ def create_wandb_callback(config, general_config, *args, **kwargs):
     wandb_config = config.pop("WANDB_INIT")
     wandb.login(key=wandb_token)
     output_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
-    wandb_name = "/".join(output_path.split("/")[-2:])
+    wandb_name = f"{os.sep}".join(output_path.split(os.sep)[-2:])
+    print(wandb_name)
     general_config["output_path"] = output_path
 
     # Check wandb callback and pop

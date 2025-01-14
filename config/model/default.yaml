@@ -3,4 +3,8 @@ use_clstm: true
 use_cbn: true
 loss:
   name: "binaural_loss"
-device: "cpu"
+  ild_weight: 1
+  ipd_weight: 10
+  snr_loss_weight: 1
+  stoi_weight: 10
+device: "cuda"

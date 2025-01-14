@@ -1,3 +1,4 @@
 defaults:
   - dataset: default
   - model: default
+  - trainer: trainer
