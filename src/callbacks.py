@@ -6,7 +6,6 @@ import torch
 import numpy as np
 from tqdm import tqdm
 from .utils.other import get_lr
-from eval_package.asvspoof5.calculate_metrics import calculate_minDCF_EER_CLLR_actDCF, compute_eer
 
 
 class Callback:
@@ -208,5 +207,5 @@ class LogSpoofMetrics(Callback):
         )
 
     def on_end(self, trainer):
-       # TODO Load Best model and Inference on the test-set.
-       pass 
+        # TODO Load Best model and Inference on the test-set.
+        pass

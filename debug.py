@@ -1,4 +1,5 @@
 from src.backbones.BCCTN import BinauralAttentionDCNN
 
 
-model = BinauralAttentionDCNN
+model = BinauralAttentionDCNN()
+print(model)
