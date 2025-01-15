@@ -98,7 +98,7 @@ def create_wandb_callback(config, general_config, *args, **kwargs):
 
     wandb_config["config"] = general_config
     wandb_config["name"] = wandb_name
-    return WanDBLogger(wandb_config)
+    return WanDBLogger(wandb_config, offline=offline)
 
 
 def create_validation_inference_callback(config, *args, **kwargs):
