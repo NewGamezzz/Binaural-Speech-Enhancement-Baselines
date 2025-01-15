@@ -1,10 +1,7 @@
 name: "toydataset"
-train_path: "/project/lt200349-cu-sls/dataset/binaural_speech_enhancement/toyd
-ataset/train"
-val_path: "/project/lt200349-cu-sls/dataset/binaural_speech_enhancement/toydat
-aset/test"
-test_path: "/project/lt200349-cu-sls/dataset/binaural_speech_enhancement/toyda
-taset/test"
+train_path: "/project/lt200349-cu-sls/dataset/binaural_speech_enhancement/toydataset/train"
+val_path: "/project/lt200349-cu-sls/dataset/binaural_speech_enhancement/toydataset/test"
+test_path: "/project/lt200349-cu-sls/dataset/binaural_speech_enhancement/toydataset/test"
 mode: "both"
 batch_size: 32
 num_workers: 4
