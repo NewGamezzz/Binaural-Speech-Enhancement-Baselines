@@ -1,0 +1,9 @@
+torch
+torchaudio
+wandb
+hydra-core
+pesq
+pystoi
+torch_stoi
+scipy
+tqdm
