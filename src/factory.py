@@ -78,7 +78,9 @@ def create_tqdm_callback(*args, **kwargs):
 def create_wandb_callback(config, general_config, *args, **kwargs):
     wandb_token = config.pop("WANDB_TOKEN")
     wandb_config = config.pop("WANDB_INIT")
-    wandb.login(key=wandb_token)
+    offline = config.get("offline", False)
+    if not offline:
+        wandb.login(key=wandb_token)
     output_path = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
     wandb_name = f"{os.sep}".join(output_path.split(os.sep)[-2:])
     print(wandb_name)

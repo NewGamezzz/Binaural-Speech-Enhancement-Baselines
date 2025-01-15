@@ -90,10 +90,16 @@ class TQDMProgressBar(Callback):
 
 
 class WanDBLogger(Callback):
-    def __init__(self, wandb_config):
+    def __init__(self, wandb_config, offline=False):
         self.wandb_config = wandb_config
-        self.output_path = os.path.join(self.wandb_config["config"]["output_path"], "weights")
+        self.output_path = os.path.join(
+            self.wandb_config["config"]["output_path"], "weights"
+        )
         os.makedirs(self.output_path)
+
+        if offline:
+            print("Turn wandb to offline mode.")
+            os.environ["WANDB_MODE"] = "offline"
 
     def on_start(self, trainer):
         wandb.init(**self.wandb_config)
