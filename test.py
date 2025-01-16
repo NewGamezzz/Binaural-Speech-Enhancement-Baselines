@@ -118,4 +118,5 @@ if __name__ == "__main__":
     model.to(args.device)
     model.eval()
 
-    inference(data_module.test_dataloader(), model, device=args.device)
+    # inference(data_module.test_dataloader(), model, device=args.device)
+    generate_sample(data_module.test_dataloader(), model, device=args.device)
