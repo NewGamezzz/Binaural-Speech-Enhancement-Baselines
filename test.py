@@ -3,6 +3,7 @@ import yaml
 import torch
 import argparse
 import numpy as np
+import soundfile as sf
 
 from tqdm import tqdm
 from pesq import pesq
@@ -60,6 +61,40 @@ def inference(data_loader, model, device="cuda"):
     _pesq /= n_utterance
     _estoi /= n_utterance
     print("SI-SDR:", _si_sdr, "PESQ:", _pesq, "ESTOI:", _estoi)
+
+
+def generate_sample(data_loader, model, device="cuda", N=10):
+    output_utterances = []
+    target_utterances = []
+    with torch.no_grad():
+        for data in data_loader:
+            noisy_utterance, clean_binaural_utterance, clean_monaural_utterance = data
+            noisy_utterance, clean_binaural_utterance, clean_monaural_utterance = (
+                noisy_utterance.to(device),
+                clean_binaural_utterance.to(device),
+                clean_monaural_utterance.to(device),
+            )
+            output = model(noisy_utterance)
+            output_utterances.append(output.detach())
+            target_utterances.append(clean_monaural_utterance.detach())
+
+    output_utterances = torch.cat(output_utterances, dim=0).data.cpu()
+    # output_utterances = np.mean(output_utterances, axis=1)
+    target_utterances = torch.cat(target_utterances, dim=0).squeeze(1).data.cpu()
+
+    for i_sample in range(N):
+        sf.write(
+            f"./sample/output/{i_sample}.wav",
+            torch.transpose(output_utterances[i_sample], 0, 1).numpy(),
+            16000,
+            "PCM_24",
+        )
+        sf.write(
+            f"./sample/target/{i_sample}.wav",
+            target_utterances[i_sample].numpy(),
+            16000,
+            "PCM_24",
+        )
 
 
 if __name__ == "__main__":
