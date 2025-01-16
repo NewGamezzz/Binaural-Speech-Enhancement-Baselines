@@ -32,16 +32,17 @@ def inference(data_loader, model, device="cuda"):
     # TODO: Implement inference process and calculate metrics.
     output_utterances = []
     target_utterances = []
-    for data in data_loader:
-        noisy_utterance, clean_binaural_utterance, clean_monaural_utterance = data
-        noisy_utterance, clean_binaural_utterance, clean_monaural_utterance = (
-            noisy_utterance.to(device),
-            clean_binaural_utterance.to(device),
-            clean_monaural_utterance.to(device),
-        )
-        output = model(noisy_utterance)
-        output_utterances.append(output)
-        target_utterances.append(clean_monaural_utterance)
+    with torch.no_grad():
+        for data in data_loader:
+            noisy_utterance, clean_binaural_utterance, clean_monaural_utterance = data
+            noisy_utterance, clean_binaural_utterance, clean_monaural_utterance = (
+                noisy_utterance.to(device),
+                clean_binaural_utterance.to(device),
+                clean_monaural_utterance.to(device),
+            )
+            output = model(noisy_utterance)
+            output_utterances.append(output.detach())
+            target_utterances.append(clean_monaural_utterance.detach())
 
     output_utterances = torch.cat(output_utterances, dim=0).data.cpu().numpy()
     target_utterances = torch.cat(target_utterances, dim=0).squeeze(1).data.cpu().numpy()
