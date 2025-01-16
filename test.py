@@ -46,7 +46,7 @@ def inference(data_loader, model, device="cuda"):
 
     output_utterances = torch.cat(output_utterances, dim=0).data.cpu().numpy()
     target_utterances = torch.cat(target_utterances, dim=0).squeeze(1).data.cpu().numpy()
-    n_utterance, _ = output.shape
+    n_utterance, _, _ = output_utterances.shape
 
     _pesq, _si_sdr, _estoi = 0.0, 0.0, 0.0
     for index in tqdm(range(n_utterance), desc="Calculate Metrics"):
