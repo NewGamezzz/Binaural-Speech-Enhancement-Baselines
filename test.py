@@ -83,9 +83,15 @@ def generate_sample(data_loader, model, device="cuda", N=10):
     target_utterances = torch.cat(target_utterances, dim=0).squeeze(1).data.cpu()
 
     for i_sample in range(N):
+        # sf.write(
+        #     f"./sample/output/{i_sample}.wav",
+        #     torch.transpose(output_utterances[i_sample], 0, 1).numpy(),
+        #     16000,
+        #     "PCM_24",
+        # )
         sf.write(
             f"./sample/output/{i_sample}.wav",
-            torch.transpose(output_utterances[i_sample], 0, 1).numpy(),
+            torch.mean(output_utterances[i_sample], dim=1).numpy(),
             16000,
             "PCM_24",
         )
