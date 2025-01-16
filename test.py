@@ -63,7 +63,7 @@ if __name__ == "__main__":
     args = get_args()
     print(args)
 
-    state_dict_path = os.path.join(args.weight_path, f"weight/epoch_{args.weight_epoch}.ckpt")
+    state_dict_path = os.path.join(args.weight_path, f"weights/epoch_{args.weight_epoch}.ckpt")
     config_path = (
         os.path.join(args.weight_path, ".hydra/config.yaml") if args.config is None else args.config
     )
