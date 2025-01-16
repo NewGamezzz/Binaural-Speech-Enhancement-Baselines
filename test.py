@@ -125,4 +125,4 @@ if __name__ == "__main__":
     model.eval()
 
     # inference(data_module.test_dataloader(), model, device=args.device)
-    generate_sample(data_module.test_dataloader(), model, device=args.device)
+    generate_sample(data_module.train_dataloader(), model, device=args.device)
