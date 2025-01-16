@@ -91,7 +91,7 @@ def generate_sample(data_loader, model, device="cuda", N=10):
         # )
         sf.write(
             f"./sample/output/{i_sample}.wav",
-            torch.mean(output_utterances[i_sample], dim=1).numpy(),
+            torch.mean(output_utterances[i_sample], dim=0).numpy(),
             16000,
             "PCM_24",
         )
