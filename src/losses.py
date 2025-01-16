@@ -90,3 +90,19 @@ class MonauralLoss(nn.Module):
 
         loss = self.loss_func(monaural_output, monaural_target)
         return loss
+
+
+class MonauralSNRLoss(nn.Module):
+    def __init__(self, win_len=400, win_inc=100, fft_len=512, **kwargs):
+        super().__init__()
+        self.stft = Stft(fft_len, win_inc, win_len)
+
+    def forward(self, model_output, targets):
+        monaural_output = torch.mean(model_output, dim=1)
+        monaural_target = targets[:, 0, :]
+
+        # monaural_output = self.stft(monaural_output)
+        # monaural_target = self.stft(monaural_target)
+
+        loss = snr_loss(monaural_output, monaural_target)
+        return loss

@@ -6,7 +6,7 @@ import wandb
 from torch.utils.data import DataLoader
 from .backbones import BCCTN
 from .dataset import DataModule, ToyDataset
-from .losses import BinauralLoss, MonauralLoss
+from .losses import BinauralLoss, MonauralLoss, MonauralSNRLoss
 from .module import BinauralSpeechEnhancement
 from .callbacks import TQDMProgressBar, WanDBLogger, ValidationInference
 from .trainer import Trainer
@@ -49,7 +49,11 @@ def create_data_module(config):
 
 def create_model(config):
     name_to_model = {"BCCTN": BCCTN.BinauralAttentionDCNN}
-    name_to_loss = {"binaural_loss": BinauralLoss, "monaural_loss": MonauralLoss}
+    name_to_loss = {
+        "binaural_loss": BinauralLoss,
+        "monaural_loss": MonauralLoss,
+        "monaural_snr_loss": MonauralSNRLoss,
+    }
     name = config.pop("name")
     loss_config = config.pop("loss")
     loss_name = loss_config.pop("name")
