@@ -65,16 +65,16 @@ if __name__ == "__main__":
 
     state_dict_path = os.path.join(args.weight_path, f"weight/epoch_{args.weight_epoch}.ckpt")
     config_path = (
-        os.path.join(args.weight_path, ".hydra.yaml") if args.config is None else args.config
+        os.path.join(args.weight_path, ".hydra/config.yaml") if args.config is None else args.config
     )
 
-    state_dict = torch.load(state_dict_path)
+    state_dict = torch.load(state_dict_path, weights_only=True)
     config = load_yaml(config_path)
 
-    data_config = config.dataset
+    data_config = config["dataset"]
     data_module = factory.create_data_module(data_config)
 
-    model_config = config.model
+    model_config = config["model"]
     model = factory.create_model(model_config)
     model.load_state_dict(state_dict["model"])
     model.to(args.device)
