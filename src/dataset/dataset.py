@@ -55,8 +55,9 @@ class ToyDataset(Dataset):
     def __getitem__(self, index):
         noisy_filename, clean_binaural_filename, clean_monaural_filename = self.data[index]
         noisy_utterance, _ = torchaudio.load(noisy_filename)
-        clean_binaural_utterance, _ = torchaudio.load(clean_binaural_filename)
+        # clean_binaural_utterance, _ = torchaudio.load(clean_binaural_filename)
         clean_monaural_utterance, _ = torchaudio.load(clean_monaural_filename)
+        clean_binaural_utterance = clean_monaural_utterance.repeat(2, 1)
 
         if self.mode == "binaural":
             return noisy_utterance, clean_binaural_utterance
