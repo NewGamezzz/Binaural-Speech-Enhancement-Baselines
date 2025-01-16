@@ -104,5 +104,5 @@ class MonauralSNRLoss(nn.Module):
         # monaural_output = self.stft(monaural_output)
         # monaural_target = self.stft(monaural_target)
 
-        loss = snr_loss(monaural_output, monaural_target)
+        loss = -snr_loss(monaural_output, monaural_target)
         return loss
