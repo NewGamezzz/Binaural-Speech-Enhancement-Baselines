@@ -85,8 +85,8 @@ class MonauralLoss(nn.Module):
         monaural_output = torch.mean(model_output, dim=1)
         monaural_target = targets[:, 0, :]
 
-        monaural_output = self.stft(monaural_output)
-        monaural_target = self.stft(monaural_target)
+        # monaural_output = self.stft(monaural_output)
+        # monaural_target = self.stft(monaural_target)
 
         loss = self.loss_func(monaural_output, monaural_target)
         return loss
