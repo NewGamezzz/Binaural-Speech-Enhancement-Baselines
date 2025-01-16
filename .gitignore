@@ -3,6 +3,7 @@ backups/
 wandb/
 *.sh
 logs/
+sample/
 
 # Ignore pycache files and folders
 src/dataset/__pycache__/

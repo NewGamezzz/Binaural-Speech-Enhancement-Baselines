@@ -2,6 +2,7 @@ import os
 import yaml
 import torch
 import argparse
+import numpy as np
 
 from tqdm import tqdm
 from pesq import pesq
@@ -45,8 +46,9 @@ def inference(data_loader, model, device="cuda"):
             target_utterances.append(clean_monaural_utterance.detach())
 
     output_utterances = torch.cat(output_utterances, dim=0).data.cpu().numpy()
+    output_utterances = np.mean(output_utterances, axis=1)
     target_utterances = torch.cat(target_utterances, dim=0).squeeze(1).data.cpu().numpy()
-    n_utterance, _, _ = output_utterances.shape
+    n_utterance, _ = output_utterances.shape
 
     _pesq, _si_sdr, _estoi = 0.0, 0.0, 0.0
     for index in tqdm(range(n_utterance), desc="Calculate Metrics"):
