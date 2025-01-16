@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from .shared import snr_loss, ild_loss_db, ipd_loss_rads, Stft, IStft
 from torch_stoi import NegSTOILoss
@@ -71,4 +72,21 @@ class BinauralLoss(nn.Module):
             # print('\n IPD Loss = ', bin_ipd_loss)
             loss += bin_ipd_loss
 
+        return loss
+
+
+class MonauralLoss(nn.Module):
+    def __init__(self, win_len=400, win_inc=100, fft_len=512, **kwargs):
+        super().__init__()
+        self.stft = Stft(fft_len, win_inc, win_len)
+        self.loss_func = torch.nn.MSELoss(**kwargs)
+
+    def forward(self, model_output, targets):
+        monaural_output = torch.mean(model_output, dim=1)
+        monaural_target = targets[:, 0, :]
+
+        monaural_output = self.stft(monaural_output)
+        monaural_target = self.stft(monaural_target)
+
+        loss = self.loss_func(monaural_output, monaural_target)
         return loss
