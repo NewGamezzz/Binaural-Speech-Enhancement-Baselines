@@ -4,7 +4,7 @@ import torch
 import hydra
 import wandb
 from torch.utils.data import DataLoader
-from .backbones import BCCTN
+from .backbones import BCCTN, ConvTasNet
 from .dataset import DataModule, ToyDataset
 from .losses import BinauralLoss, MonauralLoss, MonauralSNRLoss
 from .module import BinauralSpeechEnhancement
@@ -48,7 +48,7 @@ def create_data_module(config):
 
 
 def create_model(config):
-    name_to_model = {"BCCTN": BCCTN.BinauralAttentionDCNN}
+    name_to_model = {"BCCTN": BCCTN.BinauralAttentionDCNN, "ConvTasNet": ConvTasNet.ConvTasNet}
     name_to_loss = {
         "binaural_loss": BinauralLoss,
         "monaural_loss": MonauralLoss,

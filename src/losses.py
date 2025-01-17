@@ -82,7 +82,8 @@ class MonauralLoss(nn.Module):
         self.loss_func = torch.nn.MSELoss(**kwargs)
 
     def forward(self, model_output, targets):
-        monaural_output = torch.mean(model_output, dim=1)
+        monaural_output = model_output
+        # monaural_output = torch.mean(model_output, dim=1)
         monaural_target = targets[:, 0, :]
 
         # monaural_output = self.stft(monaural_output)
@@ -98,7 +99,8 @@ class MonauralSNRLoss(nn.Module):
         self.stft = Stft(fft_len, win_inc, win_len)
 
     def forward(self, model_output, targets):
-        monaural_output = torch.mean(model_output, dim=1)
+        monaural_output = model_output
+        # monaural_output = torch.mean(model_output, dim=1)
         monaural_target = targets[:, 0, :]
 
         # monaural_output = self.stft(monaural_output)

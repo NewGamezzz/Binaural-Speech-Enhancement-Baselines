@@ -1,6 +1,6 @@
-name: BCCTN
-use_clstm: true
-use_cbn: true
+name: ConvTasNet
+# use_clstm: true
+# use_cbn: true
 loss:
   name: "monaural_snr_loss"
   # ild_weight: 1
