@@ -4,6 +4,7 @@ wandb/
 *.sh
 logs/
 sample/
+Trained_model.ckpt
 
 # Ignore pycache files and folders
 src/dataset/__pycache__/

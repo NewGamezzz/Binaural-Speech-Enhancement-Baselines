@@ -124,6 +124,35 @@ if __name__ == "__main__":
     model.load_state_dict(state_dict["model"])
     model.to(args.device)
     model.eval()
+    # state_dict = torch.load("Trained_model.ckpt")
+    # model_config = {
+    #     "name": "BCCTN",
+    #     "use_clstm": True,
+    #     "use_cbn": True,
+    #     "loss": {
+    #         "name": "binaural_loss",
+    #         "ild_weight": 1,
+    #         "ipd_weight": 10,
+    #         "snr_loss_weight": 1,
+    #         "stoi_weight": 10,
+    #     },
+    #     "device": "cuda",
+    # }
+
+    # new_state_dict = {}
+
+    # for key, value in state_dict["state_dict"].items():
+    #     if key == "loss.stoi_loss.resample.kernel":
+    #         key = "loss_func.stoi_loss.resample.kernel"
+    #     elif "loss" in key:
+    #         key = key.strip("loss")
+    #         key = "loss_func" + key
+    #     new_state_dict[key] = value
+
+    # model = factory.create_model(model_config)
+    # model.load_state_dict(new_state_dict)
+    # model.to(args.device)
+    # model.eval()
 
     inference(data_module.test_dataloader(), model, device=args.device)
     generate_sample(data_module.test_dataloader(), model, device=args.device)
