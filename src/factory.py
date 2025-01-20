@@ -4,10 +4,10 @@ import torch
 import hydra
 import wandb
 from torch.utils.data import DataLoader
-from .backbones import BCCTN, ConvTasNet
+from .backbones import BCCTN, ConvTasNet, GaGNet
 from .dataset import DataModule, ToyDataset
 from .losses import BinauralLoss, MonauralLoss, MonauralSNRLoss
-from .module import BinauralSpeechEnhancement
+from .module import BinauralSpeechEnhancement, MonauralSpeechEnhancement
 from .callbacks import TQDMProgressBar, WanDBLogger, ValidationInference
 from .trainer import Trainer
 
@@ -48,7 +48,16 @@ def create_data_module(config):
 
 
 def create_model(config):
-    name_to_model = {"BCCTN": BCCTN.BinauralAttentionDCNN, "ConvTasNet": ConvTasNet.ConvTasNet}
+    name_to_model = {
+        "BCCTN": BCCTN.BinauralAttentionDCNN,
+        "ConvTasNet": ConvTasNet.ConvTasNet,
+        "GaGNet": GaGNet.GaGNetModule,
+    }
+    name_to_module = {
+        "BCCTN": BinauralSpeechEnhancement,
+        "ConvTasNet": BinauralSpeechEnhancement,
+        "GaGNet": MonauralSpeechEnhancement,
+    }
     name_to_loss = {
         "binaural_loss": BinauralLoss,
         "monaural_loss": MonauralLoss,
@@ -61,7 +70,7 @@ def create_model(config):
 
     model = name_to_model[name](**config)
     loss_func = name_to_loss[loss_name](**loss_config)
-    module = BinauralSpeechEnhancement(model, loss_func, device)
+    module = name_to_module[name](model, loss_func, device)
     return module
 
 

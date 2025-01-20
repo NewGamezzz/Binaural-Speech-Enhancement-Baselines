@@ -23,3 +23,29 @@ class BinauralSpeechEnhancement(nn.Module):
         denoised_utterance = self.model(noisy_utterance)
         loss = self.loss_func(denoised_utterance, clean_utterance)
         return denoised_utterance, loss
+
+
+class MonauralSpeechEnhancement(nn.Module):
+    def __init__(self, model, loss_func, device="cuda"):
+        super().__init__()
+        self.model = model
+        self.loss_func = loss_func
+        self.device = device
+        self.to(device)
+
+    def forward(self, noisy_utterance):
+        if len(noisy_utterance.shape) == 3 and noisy_utterance.shape[1] == 2:
+            noisy_utterance = noisy_utterance.mean(dim=1)
+        noisy_utterance = noisy_utterance.to(self.device)
+
+        return self.model(noisy_utterance)
+
+    def step(self, batch):
+        noisy_utterance, clean_utterance, _ = batch
+        noisy_utterance, clean_utterance = noisy_utterance.to(self.device), clean_utterance.to(
+            self.device
+        )
+
+        denoised_utterance = self.forward(noisy_utterance)
+        loss = self.loss_func(denoised_utterance, clean_utterance)
+        return denoised_utterance, loss

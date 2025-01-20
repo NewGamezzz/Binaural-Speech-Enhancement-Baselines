@@ -1,4 +1,4 @@
-name: ConvTasNet
+name: GaGNet
 # use_clstm: true
 # use_cbn: true
 loss:
