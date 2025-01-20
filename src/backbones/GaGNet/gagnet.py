@@ -34,9 +34,11 @@ def pad_spec(Y, mode="zero_pad"):
 
 
 class GaGNetModule(nn.Module):
-    def __init__(self, model, transform_type="exponent", spec_abs_exponent=0.5, spec_factor=0.15):
+    def __init__(
+        self, model, transform_type="exponent", spec_abs_exponent=0.5, spec_factor=0.15, **kwargs
+    ):
         super().__init__()
-        self.model = model
+        self.model = GaGNet(**kwargs)
         self.stft_window = get_window("hann", 510).to("cuda")
         self.istft_kwargs = {
             "n_fft": 510,
